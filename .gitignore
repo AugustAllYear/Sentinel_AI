@@ -1,0 +1,30 @@
+# Virtual environments
+venv/
+sentinel_ai_venv/
+env/
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# MLflow
+mlruns/
+
+# Data files (optional – if you don't want to commit large data)
+*.csv
+*.parquet
+*.pkl
+
+# IDE
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
