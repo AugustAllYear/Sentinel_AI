@@ -1,11 +1,40 @@
-# Propensity‑Based Audience Optimization
+# Sential AI 
+Adaptive Fraud Scoring Engine
 
 ## Project Overview
-This project develops a machine learning model to optimize email marketing campaigns. By predicting which customers are most likely to engage (open an email), the marketing team can target a smaller, higher‑potential audience, increasing overall reach while keeping send volume constant. The solution is designed to be replicable and can be integrated into a monthly campaign workflow.
+
 
 ## Business Problem
-The company historically sent campaigns to its entire customer database, resulting in low open rates and wasted marketing spend. The goal was to use data‑driven targeting to increase the number of opens by 25% within six months, without increasing the number of emails sent.
 
+## Project Structure
+```
+sentinel_ai/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                # CI/CD workflow
+├── config/
+│   └── config.yaml               # (optional) configuration
+├── data/
+│   ├── raw/                      # raw input data (ignored by git)
+│   └── processed/                # cleaned data
+├── models/                       # saved model artifacts (MLflow)
+├── src/
+│   ├── __init__.py
+│   ├── data.py                   # data loading & preprocessing
+│   ├── features.py               # feature engineering
+│   ├── train.py                  # model training
+│   ├── evaluate.py               # evaluation & metrics
+│   ├── predict.py                # prediction on new data
+│   └── utils.py                  # helpers
+├── tests/
+│   ├── test_data.py
+│   └── test_model.py
+├── notebooks/                    # (optional) exploratory notebooks
+├── .gitignore
+├── README.md
+├── requirements.txt
+└── setup.py                      # (optional) for packaging  
+```
 ## Data
 We used historical campaign data containing:
 - Customer demographics: age, income, tenure (months), days since last purchase, average order value
