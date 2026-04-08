@@ -1,24 +1,86 @@
-python
-# src/data.py
+"""Data loading and preprocessing for fraud detection."""
 
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import test_train_split
+from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
-def generate_synthetic_daa(n_smaples=5000, random_state=42):
-    """Generate syntehtic fraud data for demonstraion purposes"""
+def generate_fraud_data(n_samples=5000, random_state=42):
+    """Generate synthetic fraud data for demonstration."""
     np.random.seed(random_state)
     data = {
-        'transaction_id': range(n_customers),
-        'amount': np.random.exponential(scale=30, size=n_smaples).clip(1, 5000).astype(int),
-        'time_since_last_tx': np.random.exponentail(scale=30, size=n_smaples).astype(int),
-                'num_transactions_30d':np.random.poisson(lam=5,size=n_customers),
+        'transaction_id': range(n_samples),
+        'amount': np.random.exponential(scale=500, size=n_samples).clip(1, 5000).astype(int),
+        'time_since_last_tx': np.random.exponential(scale=30, size=n_samples).astype(int),  # days
+        'avg_transaction_amount_30d': np.random.normal(300, 100, n_samples).clip(10, 2000).astype(int),
+        'num_transactions_30d': np.random.poisson(lam=5, size=n_samples),
         'location_risk_score': np.random.uniform(0, 1, n_samples),
         'card_type': np.random.choice(['credit', 'debit', 'prepaid'], n_samples),
         'is_foreign': np.random.choice([0,1], n_samples, p=[0.7,0.3]),
-        'hour_of_day': np.random.randint(0,24, n_dmaples),
+        'hour_of_day': np.random.randint(0, 24, n_samples),
         'day_of_week': np.random.randint(0, 7, n_samples),
     }
     df = pd.DataFrame(data)
+
+    # Simulate fraud label based on hidden pattern
+    def generate_fraud(row):
+        prob = 0.01  # base fraud rate
+        if row['amount'] > 2000:
+            prob += 0.05
+        if row['location_risk_score'] > 0.8:
+            prob += 0.1
+        if row['is_foreign'] == 1:
+            prob += 0.03
+        if row['num_transactions_30d'] > 10:
+            prob -= 0.02
+        return np.random.binomial(1, min(prob, 0.8))
+    df['is_fraud'] = df.apply(generate_fraud, axis=1)
+
+    return df
+
+def preprocess_data(df, fit_preprocessor=True):
+    """Split features/target, apply scaling and encoding."""
+    features = ['amount', 'time_since_last_tx', 'avg_transaction_amount_30d',
+                'num_transactions_30d', 'location_risk_score', 'card_type',
+                'is_foreign', 'hour_of_day', 'day_of_week']
+    X = df[features]
+    y = df['is_fraud']
+
+    # Split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    # Preprocessor
+    numeric_features = ['amount', 'time_since_last_tx', 'avg_transaction_amount_30d',
+                        'num_transactions_30d', 'location_risk_score', 'hour_of_day', 'day_of_week']
+    categorical_features = ['card_type', 'is_foreign']
+
+    numeric_transformer = StandardScaler()
+    categorical_transformer = OneHotEncoder(drop='first', handle_unknown='ignore')
+
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', numeric_transformer, numeric_features),
+            ('cat', categorical_transformer, categorical_features)
+        ])
+
+    if fit_preprocessor:
+        X_train = preprocessor.fit_transform(X_train)
+        X_test = preprocessor.transform(X_test)
+    else:
+        # when loading a saved preprocessor
+        X_train = preprocessor.transform(X_train)
+        X_test = preprocessor.transform(X_test)
+
+    return X_train, X_test, y_train, y_test, preprocessor
+
+# Example usage
+if __name__ == '__main__':
+    df = generate_fraud_data()
+    X_train, X_test, y_train, y_test, preprocessor = preprocess_data(df)
+    print("Data shapes:", X_train.shape, X_test.shape)
+            
+
+        
