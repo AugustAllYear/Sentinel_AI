@@ -35,6 +35,26 @@ sentinel_ai/
 ├── requirements.txt
 └── setup.py                      # (optional) for packaging  
 ```
+
+GET SETUP.py!!!!
+```
+sentinel_ai/
+├── .github/workflows/      # CI/CD pipelines
+├── config/                 # configuration files
+├── data/                   # raw and processed data (gitignored)
+├── models/                 # saved models
+├── src/                    # source code
+│   ├── data.py
+│   ├── features.py
+│   ├── train.py
+│   ├── evaluate.py
+│   ├── predict.py
+│   └── utils.py
+├── tests/                  # unit tests
+├── app.py                  # Streamlit dashboard
+├── requirements.txt
+└── README.md
+```
 ## Data
 We used historical campaign data containing:
 - Customer demographics: age, income, tenure (months), days since last purchase, average order value
