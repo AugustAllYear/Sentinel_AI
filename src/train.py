@@ -22,12 +22,12 @@ def load_real_data(file_path: str):
 
 def train_model(use_synthetic=True, data_path=None):
     """Train model with either synthetic or real data."""
-    if use_synthetic:
-        df = generate_fraud_data()
-    else:
-        if data_path is None:
+    if data_path is None:
             raise ValueError("Must provide data_path when use_synthetic=False")
         df = load_real_data(data_path)
+    else:
+        if use_synthetic:
+        df = generate_fraud_data()
 
     X_train, X_test, y_train, y_test, preprocessor = preprocess_data(df)
 
