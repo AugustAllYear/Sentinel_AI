@@ -14,9 +14,9 @@ jobs:
         python-version: ['3.11']
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4          # updated from v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5      # updated from v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -31,7 +31,7 @@ jobs:
       run: |
         pip install pytest
         pytest tests/
-    - name: Train model (example)
+    - name: Train model (synthetic)
       run: |
         python src/train.py
     - name: Evaluate model

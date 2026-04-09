@@ -1,30 +1,38 @@
-"""Evaluation script for fraud model."""
+"""Evaluate fraud detection model."""
 
 import mlflow
-from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+import pandas as pd
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, average_precision_score
 from src.data import generate_fraud_data, preprocess_data
+from src.features import engineer_features
+from src.utils import setup_logging, plot_roc_curve, plot_confusion_matrix, load_model
 import joblib
+
+logger = setup_logging()
 
 def evaluate(model, preprocessor, X_test, y_test):
     y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:, 1]
 
-    print("Classification Report:")
+    logger.info("Classification Report:")
     print(classification_report(y_test, y_pred))
-    print("\nConfusion Matrix:")
-    print(confusion_matrix(y_test, y_pred))
-    print(f"ROC-AUC: {roc_auc_score(y_test, y_proba):.4f}")
+
+    cm = confusion_matrix(y_test, y_pred)
+    logger.info(f"Confusion Matrix:\n{cm}")
+
+    auc = roc_auc_score(y_test, y_proba)
+    avg_precision = average_precision_score(y_test, y_proba)
+    logger.info(f"ROC-AUC: {auc:.4f}, Average Precision: {avg_precision:.4f}")
+
+    plot_roc_curve(y_test, y_proba, save_path="eval_roc.png")
+    plot_confusion_matrix(y_test, y_pred, save_path="eval_cm.png")
 
 if __name__ == "__main__":
-    # Example: load best model from MLflow
-    # (you would typically load the model from a registered run)
+    # Example: use synthetic data for evaluation
     df = generate_fraud_data()
+    df = engineer_features(df)
     X_train, X_test, y_train, y_test, preprocessor = preprocess_data(df)
 
-    # For demo, train a new model
-    from src.train import train_model
-    model, preprocessor = train_model()
+    # Load a pre‑trained model (adjust path as needed)
+    model, preprocessor = load_model("models/model.joblib", "models/preprocessor.joblib")
     evaluate(model, preprocessor, X_test, y_test)
-                                                    
-        
-    

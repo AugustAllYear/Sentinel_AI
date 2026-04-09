@@ -1,10 +1,74 @@
-# Sential AI 
-Adaptive Fraud Scoring Engine
+# Sential AI - Adaptive Fraud Scoring and Detection Engine
 
-## Project Overview
+End‑to‑end machine learning pipeline for real‑time fraud detection, with CI/CD, automated retraining, and a monitoring dashboard.
 
+## Features
+- Synthetic data generator or load real transaction CSV.
+- Feature engineering (velocity, amount z‑score, rolling fraud rate).
+- Random Forest classifier with `class_weight='balanced'` for imbalanced data.
+- Evaluation metrics: ROC‑AUC and Average Precision.
+- MLflow tracking for experiments.
+- Unit tests with pytest.
+- GitHub Actions CI/CD (linting, testing, training).
+- Scheduled weekly retraining (cron).
+- Streamlit dashboard for predictions and monitoring.
 
-## Business Problem
+## Setup
+
+1. Clone the repository:
+```bash
+   git clone https://github.com/yourusername/sentinel_ai.git
+   cd sentinel_ai
+```
+2. Create a virtual environment (Python 3.11 recommended):
+```bash
+    python -m venv venv
+    source venv/bin/activate #mac
+```
+3. Install dependencies:
+```bash
+    pip install -r requirements.txt
+```
+4. (Optional) COnfigure MLflow tracking URI: set environment variable
+   `MLFLOW_TRACKING_URI`
+
+## Usage
+
+### Train model with syntheric data
+```bash
+    python src/train.py --synthetic
+```
+
+### Train with real data
+```bash
+    paython src/train.py --data_path data/raw/tranaction.csv. #adjust as eneded
+```
+
+### Evaluate
+```bash
+    python src/evaluate.py
+```
+
+### Pedict on new data
+```
+    from src.predict import load_model, predict
+    import pandas as pd
+    model, preprocessor = load_model()
+    new_data = pd.read_csv("now_transactions.csv")
+    probs = predict(new_data, model, preprocessor)
+```
+### Run dashboard
+```
+    streamlit run app.py
+```
+### Testing
+```
+    pytest test/
+```
+### CI/CD
+
+- GitHub Actions runs test and training on every push
+- Weekly retrianing via cron job (see `github/workflows/retrain.yml`). 
 
 ## Project Structure
 ```
@@ -29,7 +93,6 @@ sentinel_ai/
 ├── tests/
 │   ├── test_data.py
 │   └── test_model.py
-├── notebooks/                    # (optional) exploratory notebooks
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
@@ -55,48 +118,103 @@ sentinel_ai/
 ├── requirements.txt
 └── README.md
 ```
-## Data
-We used historical campaign data containing:
-- Customer demographics: age, income, tenure (months), days since last purchase, average order value
-- Campaign attributes: channel (email, social, push), type (promotional, informational, loyalty)
-- Engagement flag: whether the customer opened the email (target variable)
 
-The dataset was synthetically generated for demonstration; the methodology was applied to real customer data.
+## Methodology for Projecting Business Outcomes
 
-## Methodology
-1. **Exploratory Data Analysis**: Visualized feature distributions and relationships with the target. 
-2. **Preprocessing**: Scaled numerical features and one‑hot encoded categorical variables.
-3. **Modeling**: Trained a Random Forest classifier to predict open probability.
-4. **Evaluation**: Used ROC‑AUC and classification report; achieved ROC‑AUC of 0.78.
-5. **Simulation**: Compared random targeting with model‑based targeting over six months to quantify business impact.
+We estimate fraud prevention impact using:
 
+- **Baseline fraud loss**: Historical loss without model.
+- **Model performance**: Expected recall at a given precision threshold (e.g., at 80% precision, recall = 0.6).
+- **Cost assumptions**:
+  - Average fraud amount per transaction.
+  - Cost of manual review per alert.
+
+**Formula**:
+Expected savings = (Total transaction value × Fraud rate × Recall) - (Alerts × Review cost)
+
+
+**Example** (synthetic data):
+- Monthly transactions: 1M, average amount $100 → $100M.
+- Fraud rate: 1% → $1M fraud loss.
+- Model recall: 0.6 → catches $600k fraud.
+- Alert rate: 0.5% → 5,000 alerts × $5 review = $25k.
+- Net savings = $600k - $25k = $575k per month.
+
+We can adapt these numbers when real data is available.
+
+**NOTE**:
+In `train.py` `RandomForestClassifier(class_weight='balanced') 
+- `balanced` automatically adjusts weights inversly proportional to class frequencies. For highly imblalnce fraud dataet (e.g. 1% fraud, 99% legitimate), the fraud class gets higher weight, making the modle penalize missclassificaiton fo fraud more heavily.
+- Impact of fraud rate: The lower the fraud rate, the higher the weight assigned to fraud class.This helps the model not to simply predict "not fraud" for everything.
+- Alternative: YOu can manually set `calss_weight={0.1, 1:10}` if you know the cost of missign a fraud is 10x that od a false alarm.
+## Running the Streamlit Dashboard
+
+1. Ensure you have trained a model and saved it in 'models/'.
+2. Install streamlit if not alreadys: pip install streamlit`
+3. Rum the dashboard:
+```bash
+    streamlit run app.py
+```
+4. Use the sidebar to upload a CSV file or generate synthetic data, then click "Predict Fraud Probability".
+ 
 ## Results
 - The model identified recency (`last_purchase_days`) as the strongest predictor of opens.
 - Targeting the top 30% of customers by predicted probability captures ~68% of all potential opens.
 - In a six‑month simulation, switching from random to model‑based targeting increased cumulative opens by **25%**, meeting the business objective.
 
-## How to Run
-1. Clone the repository.
-2. Install dependencies: `pip install -r requirements.txt`
-3. Run the Jupyter notebook or Python script `campaign_optimization.py`.
-4. (Optional) Replace the synthetic data with your own CSV file, ensuring column names and data types match.
+## Future Work
 
-## Continuation and Refinement Suggestions
-**Notebook Model_experimentation.ipynb**: this notebook showcases further model exploration and tuning, only on the best performing of the tested models. A GridSearchCV was performed (with cross validation on multiple data splits) to find the best tuning for both models tested, Random Forest and XGBoost.
-- - The tuned Random Forest model performed better than the XGBoost and slightly better than the Original Model with a new ROC score of 0.7936
-- The model should improve with more data with retraining every 4‑6 months, at which time it is recommended that the experimental models are retrained as well. It is also advisable to spend time engineering new features, ensembling (combining models in one pipeline). List below.
-
-- **A/B Test the Model**: Run a live experiment comparing the model’s top 30% against a random 30% control group to validate the lift.
-- **Feature Engineering**: Incorporate additional features such as:
-  - Customer lifetime value
-  - Previous campaign engagement history (e.g., number of opens in last 3 months)
-  - Time‑based features (day of week, season)
-  - Average response time
-- **Model Improvement**: Experiment with gradient boosting (XGBoost, LightGBM) and tune hyperparameters via cross‑validation.
-- **Automate Retraining**: Set up a scheduled pipeline (e.g., monthly) that ingests new campaign data, retrains the model, and updates the scoring system.
-- **Deployment**: Package the model as a REST API using Flask or FastAPI, and integrate with the marketing automation platform (e.g., Salesforce Marketing Cloud, Braze).
+- **Integrate with rea;-time API (FAstAPI)** for online scoring
+- **Model Improvement**: Add deep learning models (TensorFLow/Pytorch) for anomaly detection
+- **Deploy to cloud**: AWS, SageMaker, AzureML
 - **Monitoring**: Track model performance drift over time and set up alerts if ROC‑AUC drops below a threshold.
 -- Note:  
 Recommended CI/CD platforms: GitHub Actions, GitLab CI, Jenkins, Azure DevOps, CircleCI. For a data science project, GitHub Actions is popular because it integrates with code repositories and is free for public/private repos up to a limit.
 
-If data files being used are below 14GB data can be processed using GitHub actions. Otherwise may need to upgrade to (S3) and trigger jobs.
+If data files being used are below 14GB data can be processed using GitHub actions. Otherwise may need to upgrade to (S3) and trigger jobs
+
+## Applications
+E‑commerce: Flag suspicious transactions in real time.
+
+Banking: Credit card fraud detection.
+
+Insurance: Claim fraud detection.
+
+Fintech: Payment gateway fraud prevention.
+
+---
+
+## Use case examples and outcomes
+
+### Use Case 1: E‑commerce payment fraud
+- **Input**: Transaction amount, user history, device fingerprint, time since last order.
+- **Features**: Velocity (orders per hour), amount z‑score, rolling chargeback rate.
+- **Outcome**: Model flags high‑risk transactions for 3D Secure challenge, reducing fraud losses by 25% while maintaining conversion.
+
+### Use Case 2: Credit card fraud detection
+- **Input**: Card transaction stream, merchant category, location.
+- **Features**: Distance from previous transaction, card age, merchant risk score.
+- **Outcome**: Real‑time scoring with <100ms latency; 15% increase in fraud detection compared to rule‑based system.
+
+### Use Case 3: Insurance claim fraud
+- **Input**: Claim amount, policyholder history, claim type.
+- **Features**: Claim frequency in last year, anomaly in reported damage.
+- **Outcome**: Prioritize high‑risk claims for manual review, reducing investigation costs by 40%.
+
+These outcomes directly translate to **ROI**: lower fraud losses, reduced operational costs, and improved customer experience.
+
+---
+
+## Potential Outcomes
+Reduce false positives by 30% through better feature engineering.
+
+Increase fraud capture rate by 20% with ensemble models.
+
+Automate review queue prioritization, saving analyst hours.
+
+## License
+MIT
+
+## Contact
+For questions or concerns please contact August Vollbrecht at augustvollbrecht@gmail.com
+
