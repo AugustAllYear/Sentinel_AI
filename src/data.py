@@ -5,12 +5,21 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-
+from datetime import datetime, timedelta
 
 def generate_fraud_data(n_samples=5000, random_state=42):
     np.random.seed(random_state)
+    
+    # Generate timestamps within the last 30 days
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=30)
+    timestamps = [start_date + timedelta(seconds=np.random.randint(0, 30*24*3600)) 
+                  for _ in range(n_samples)]
+    
     data = {
         'transaction_id': range(n_samples),
+        'user_id': np.random.randint(1, 1001, n_samples),  # 1000 unique users
+        'timestamp': timestamps,
         'amount': np.random.exponential(scale=500, size=n_samples).clip(1, 5000).astype(int),
         'time_since_last_tx': np.random.exponential(scale=30, size=n_samples).astype(int),
         'avg_transaction_amount_30d': np.random.normal(300, 100, n_samples).clip(10, 2000).astype(int),
@@ -33,7 +42,6 @@ def generate_fraud_data(n_samples=5000, random_state=42):
             prob += 0.03
         if row['num_transactions_30d'] > 10:
             prob -= 0.02
-        # Clamp probability to [0, 0.8] to avoid negative or >1 values
         prob = max(0.0, min(prob, 0.8))
         return np.random.binomial(1, prob)
 
