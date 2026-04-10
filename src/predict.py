@@ -26,4 +26,15 @@ if __name__ == "__main__":
     df = generate_fraud_data()
     model, preprocessor = load_model()
     probs = predict(df.head(), model, preprocessor)
-    print("Fraud probabilities:", probs)
+    print("Fraud probabilities:", probs
+
+def predict_with_shap(new_data, model, preprocessor, feature_names):
+    probs = predict(new_data, model, preprocessor)
+    shap_values = None
+    if model.__class__.__name__ == 'RandomForestClassifier':
+        import shap
+        explainer = shap.TreeExplainer(model)
+        X_transformed = preprocessor.transform(new_data)
+        shap_values = explainer.shap_values(X_transformed)[1]
+    return probs, shap_values
+    

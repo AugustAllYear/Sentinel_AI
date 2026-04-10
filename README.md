@@ -164,11 +164,14 @@ In `train.py` `RandomForestClassifier(class_weight='balanced')
 
 ## Future Work
 
-- **Integrate with rea;-time API (FAstAPI)** for online scoring
-- **Model Improvement**: Add deep learning models (TensorFLow/Pytorch) for anomaly detection
-- **Deploy to cloud**: AWS, SageMaker, AzureML
-- **Monitoring**: Track model performance drift over time and set up alerts if ROC‑AUC drops below a threshold.
--- Note:  
+- **Real‑time API**: Deploy with FastAPI for sub‑100ms latency scoring.
+- **Deep learning extensions**: Already implemented autoencoders; next: LSTM for sequence fraud.
+- **Multi‑modal data**: Incorporate device fingerprint, IP geolocation.
+- **Federated learning**: Train across institutions without sharing raw data.
+- **Automated retraining triggers**: Use drift detection to trigger retraining outside weekly schedule.
+- **Explainability dashboard**: Interactive SHAP visualizations in Streamlit.
+- **Regulatory compliance**: Add audit trails and model cards.
+-- Note:
 Recommended CI/CD platforms: GitHub Actions, GitLab CI, Jenkins, Azure DevOps, CircleCI. For a data science project, GitHub Actions is popular because it integrates with code repositories and is free for public/private repos up to a limit.
 
 If data files being used are below 14GB data can be processed using GitHub actions. Otherwise may need to upgrade to (S3) and trigger jobs
