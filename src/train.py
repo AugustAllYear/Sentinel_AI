@@ -4,6 +4,7 @@ import mlflow
 import mlflow.sklearn
 import pandas as pd
 import argparse
+import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, average_precision_score
 from src.data import generate_fraud_data, preprocess_data
@@ -39,10 +40,13 @@ def train_model(data_path=None, use_autoencoder=False):
         if use_autoencoder:
             logger.info("Training autoencoder for anomaly detection")
             model, scaler = train_autoencoder(X_train, epochs=20)
+            # Save scaler
+            joblib.dump(scaler, "scaler.joblib")
+            mlflow.log_artifact("scaler.joblib")
+            
             # For autoencoder, we use reconstruction error as anomaly score
             _, mse_train = predict_anomaly(model, scaler, X_train)
             _, mse_test = predict_anomaly(model, scaler, X_test)
-            # Use reconstruction error as proxy for fraud score
             auc = roc_auc_score(y_test, mse_test)
             ap = average_precision_score(y_test, mse_test)
             mlflow.log_metric("roc_auc", auc)
@@ -62,7 +66,6 @@ def train_model(data_path=None, use_autoencoder=False):
             mlflow.sklearn.log_model(preprocessor, "preprocessor")
             logger.info(f"RandomForest ROC-AUC: {auc:.4f}, AP: {ap:.4f}")
 
-            # Plot and log figures
             plot_roc_curve(y_test, y_proba, save_path="roc_curve.png")
             plot_confusion_matrix(y_test, model.predict(X_test), save_path="confusion_matrix.png")
             mlflow.log_artifact("roc_curve.png")
