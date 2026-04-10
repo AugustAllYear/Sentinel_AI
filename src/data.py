@@ -22,6 +22,22 @@ def generate_fraud_data(n_samples=5000, random_state=42):
     }
     df = pd.DataFrame(data)
 
+def generate_fraud_data(n_samples=5000, random_state=42):
+    np.random.seed(random_state)
+    data = {
+        'transaction_id': range(n_samples),
+        'amount': np.random.exponential(scale=500, size=n_samples).clip(1, 5000).astype(int),
+        'time_since_last_tx': np.random.exponential(scale=30, size=n_samples).astype(int),
+        'avg_transaction_amount_30d': np.random.normal(300, 100, n_samples).clip(10, 2000).astype(int),
+        'num_transactions_30d': np.random.poisson(lam=5, size=n_samples),
+        'location_risk_score': np.random.uniform(0, 1, n_samples),
+        'card_type': np.random.choice(['credit', 'debit', 'prepaid'], n_samples),
+        'is_foreign': np.random.choice([0,1], n_samples, p=[0.7,0.3]),
+        'hour_of_day': np.random.randint(0, 24, n_samples),
+        'day_of_week': np.random.randint(0, 7, n_samples),
+    }
+    df = pd.DataFrame(data)
+
     def generate_fraud(row):
         prob = 0.01
         if row['amount'] > 2000:
@@ -32,7 +48,10 @@ def generate_fraud_data(n_samples=5000, random_state=42):
             prob += 0.03
         if row['num_transactions_30d'] > 10:
             prob -= 0.02
-        return np.random.binomial(1, min(prob, 0.8))
+        # Clamp probability to [0, 0.8] to avoid negative or >1 values
+        prob = max(0.0, min(prob, 0.8))
+        return np.random.binomial(1, prob)
+
     df['is_fraud'] = df.apply(generate_fraud, axis=1)
     return df
 
