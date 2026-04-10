@@ -37,4 +37,22 @@ def predict_with_shap(new_data, model, preprocessor, feature_names):
         X_transformed = preprocessor.transform(new_data)
         shap_values = explainer.shap_values(X_transformed)[1]
     return probs, shap_values
+
+def flag_transactions(probs, threshold=0.5, high_risk_threshold=0.8):
+    """
+    Tiered flagging:
+    - high risk (proba > high_risk_threshold) → 2 (auto-block)
+    - medium risk (threshold <= proba <= high_risk_threshold) → 1 (manual review)
+    - low risk (proba < threshold) → 0 (approve)
+    """
+    flags = []
+    for p in probs:
+        if p >= high_risk_threshold:
+            flags.append(2)
+        elif p >= threshold:
+            flags.append(1)
+        else:
+            flags.append(0)
+    return flags
+                
     

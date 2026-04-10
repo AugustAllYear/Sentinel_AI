@@ -1,12 +1,10 @@
 """Evaluate fraud detection model."""
 
 import mlflow
-import pandas as pd
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, average_precision_score
 from src.data import generate_fraud_data, preprocess_data
 from src.features import engineer_features
 from src.utils import setup_logging, plot_roc_curve, plot_confusion_matrix, load_model
-import joblib
 
 logger = setup_logging()
 
@@ -36,3 +34,15 @@ if __name__ == "__main__":
     # Load a pre‑trained model (adjust path as needed)
     model, preprocessor = load_model("models/model.joblib", "models/preprocessor.joblib")
     evaluate(model, preprocessor, X_test, y_test)
+
+def find_optimal_threshold(y_true, y_proba, target_precision=0.8):
+    precisions, recalls, thresholds = precision_recall_curve(y_true, y_proba)
+    # Find threshold where precision >= target_precision
+    for i, p in enumerate(precisions):
+        if p >= target_precision:
+            return thresholds[i]
+    return 0.5  # fallback
+
+# Usage
+threshold = find_optimal_threshold(y_test, y_proba)
+print(f"Recommended threshold: {threshold:.3f}")

@@ -13,6 +13,18 @@ End‑to‑end machine learning pipeline for real‑time fraud detection, with C
 - Scheduled weekly retraining (cron).
 - Streamlit dashboard for predictions and monitoring.
 
+### Recommended Features for Fraud Detection
+
+| Feature | Description | Value |
+|---------|-------------|-------|
+| `transaction_velocity_1h` | Number of transactions in last hour | Catches rapid succession fraud |
+| `amount_z_score` | (amount - avg_amount) / std_amount per user | Detects unusual transaction size |
+| `days_since_last_fraud` | Days since last flagged fraud (if available) | Incorporates recency of risk |
+| `card_age_days` | Days since card issuance | New cards may be riskier |
+| `merchant_risk_score` | External merchant risk tier | Uses external data |
+| `rolling_fraud_rate_7d` | Fraction of fraud in last 7 days per user | Temporal pattern |
+
+
 ## Setup
 
 1. Clone the repository:
@@ -68,7 +80,18 @@ End‑to‑end machine learning pipeline for real‑time fraud detection, with C
 ### CI/CD
 
 - GitHub Actions runs test and training on every push
-- Weekly retrianing via cron job (see `github/workflows/retrain.yml`). 
+- Weekly retrianing via cron job (see `github/workflows/retrain.yml`).
+
+## Logging & Monitoring
+
+Warnings and errors are captured in multiple places:
+
+- **Console**: Immediate feedback during local development.
+- **GitHub Actions**: Logs available in the Actions tab for each CI/CD run.
+- **MLflow**: Custom metrics and warnings can be logged as artifacts or metrics.
+- **Log file**: Set up `logging.basicConfig(filename='sentinel.log')` to persist logs.
+
+This multi‑layer approach ensures visibility across development, CI/CD, and production environments.
 
 ## Project Structure
 ```
@@ -147,6 +170,7 @@ In `train.py` `RandomForestClassifier(class_weight='balanced')
 - `balanced` automatically adjusts weights inversly proportional to class frequencies. For highly imblalnce fraud dataet (e.g. 1% fraud, 99% legitimate), the fraud class gets higher weight, making the modle penalize missclassificaiton fo fraud more heavily.
 - Impact of fraud rate: The lower the fraud rate, the higher the weight assigned to fraud class.This helps the model not to simply predict "not fraud" for everything.
 - Alternative: YOu can manually set `calss_weight={0.1, 1:10}` if you know the cost of missign a fraud is 10x that od a false alarm.
+  
 ## Running the Streamlit Dashboard
 
 1. Ensure you have trained a model and saved it in 'models/'.

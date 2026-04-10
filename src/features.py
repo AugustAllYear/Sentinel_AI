@@ -1,23 +1,21 @@
 """Feature engineering to improve performance, domain specificity, reduce overfitting with more informative inputs, prevents data leakage."""
 
-"""Feature engineering to improve performance, domain specificity, reduce overfitting with more informative inputs, prevents data leakage."""
-
 import pandas as pd
 import numpy as np
 
-def add_velocity_features(df: pd.DataFrame, time_col='timestamp', id_col='user_id'):
+def add_velocity_features(df: pd.DataFrame, time_col='timestamp', id_col='user_id', window_hours=1):
     """
-    Add transaction velocity features (count in last hour, day, etc.).
-    Requires a datetime column 'timestamp'.
+    Add rolling transaction count per user within the last `window_hours`.
+    Requires datetime column.
     """
     df = df.sort_values([id_col, time_col]).copy()
-    df['tx_1h'] = df.groupby(id_col)[time_col].transform(
-        lambda x: x.diff().dt.total_seconds().lt(3600).cumsum()
-    )
-    df['tx_24h'] = df.groupby(id_col)[time_col].transform(
-        lambda x: x.diff().dt.total_seconds().lt(86400).cumsum()
+    # Compute rolling count using a time-based window
+    df['tx_rolling'] = (
+        df.groupby(id_col)[time_col]
+        .transform(lambda x: x.rolling(window=f'{window_hours}H', closed='both').count())
     )
     return df
+    
 
 def add_amount_z_score(df: pd.DataFrame, amount_col='amount', id_col='user_id'):
     """Z-score of transaction amount per user."""
