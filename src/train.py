@@ -4,6 +4,7 @@ import mlflow
 import mlflow.sklearn
 import pandas as pd
 import argparse
+import os
 import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, average_precision_score
@@ -65,6 +66,11 @@ def train_model(data_path=None, use_autoencoder=False):
             mlflow.sklearn.log_model(model, "model")
             mlflow.sklearn.log_model(preprocessor, "preprocessor")
             logger.info(f"RandomForest ROC-AUC: {auc:.4f}, AP: {ap:.4f}")
+
+            # Save reference data for drift monitoring
+            os.makedirs("data/processed", exist_ok=True)
+            df.to_csv("data/processed/reference.csv", index=False)
+            logger.info("Saved reference dataset to data/processed/reference.csv")
 
             plot_roc_curve(y_test, y_proba, save_path="roc_curve.png")
             plot_confusion_matrix(y_test, model.predict(X_test), save_path="confusion_matrix.png")

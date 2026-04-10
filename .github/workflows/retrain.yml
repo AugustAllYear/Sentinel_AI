@@ -1,2 +1,20 @@
-- uses: actions/checkout@v4
-- uses: actions/setup-python@v5
+name: Weekly Model Retraining
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'   # Every Sunday at 00:00 UTC
+  workflow_dispatch:       # Allow manual trigger
+
+jobs:
+  monitor-and-retrain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run monitoring and retraining if needed
+        run: python src/run_monitoring.py
