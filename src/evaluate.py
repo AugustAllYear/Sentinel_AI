@@ -1,7 +1,7 @@
 """Evaluate fraud detection model."""
 
 import mlflow
-from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, average_precision_score
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, average_precision_score, precision_recall_curve
 from src.data import generate_fraud_data, preprocess_data
 from src.features import engineer_features
 from src.utils import setup_logging, plot_roc_curve, plot_confusion_matrix, load_model
@@ -25,24 +25,21 @@ def evaluate(model, preprocessor, X_test, y_test):
     plot_roc_curve(y_test, y_proba, save_path="eval_roc.png")
     plot_confusion_matrix(y_test, y_pred, save_path="eval_cm.png")
 
-if __name__ == "__main__":
-    # Example: use synthetic data for evaluation
-    df = generate_fraud_data()
-    df = engineer_features(df)
-    X_train, X_test, y_train, y_test, preprocessor = preprocess_data(df)
-
-    # Load a pre‑trained model (adjust path as needed)
-    model, preprocessor = load_model("models/model.joblib", "models/preprocessor.joblib")
-    evaluate(model, preprocessor, X_test, y_test)
-
 def find_optimal_threshold(y_true, y_proba, target_precision=0.8):
     precisions, recalls, thresholds = precision_recall_curve(y_true, y_proba)
-    # Find threshold where precision >= target_precision
     for i, p in enumerate(precisions):
         if p >= target_precision:
             return thresholds[i]
-    return 0.5  # fallback
+    return 0.5
 
-# Usage
-threshold = find_optimal_threshold(y_test, y_proba)
-print(f"Recommended threshold: {threshold:.3f}")
+if __name__ == "__main__":
+    df = generate_fraud_data()
+    df = engineer_features(df)
+    X_train, X_test, y_train, y_test, preprocessor = preprocess_data(df)
+    model, preprocessor = load_model("models/model.joblib", "models/preprocessor.joblib")
+    evaluate(model, preprocessor, X_test, y_test)
+
+    # Example threshold calculation
+    y_proba = model.predict_proba(X_test)[:, 1]
+    threshold = find_optimal_threshold(y_test, y_proba)
+    print(f"Recommended threshold: {threshold:.3f}")

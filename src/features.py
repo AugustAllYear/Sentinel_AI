@@ -5,11 +5,11 @@ import numpy as np
 
 def add_velocity_features(df: pd.DataFrame, time_col='timestamp', id_col='user_id', window_hours=1):
     """
-    Add rolling transaction count per user within the last `window_hours`.
+    Rolling transaction count per user within the last `window_hours`.
     Requires datetime column.
     """
     df = df.sort_values([id_col, time_col]).copy()
-    # Compute rolling count using a time-based window
+    df[time_col] = pd.to_datetime(df[time_col])
     df['tx_rolling'] = (
         df.groupby(id_col)[time_col]
         .transform(lambda x: x.rolling(window=f'{window_hours}H', closed='both').count())

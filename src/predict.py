@@ -9,7 +9,7 @@ def load_model(model_path="models/model.joblib", preprocessor_path="models/prepr
     return model, preprocessor
 
 def predict(new_data: pd.DataFrame, model, preprocessor):
-    # Get feature names from preprocessor if available
+    """Return fraud probabilities."""
     if hasattr(preprocessor, 'feature_names_in_'):
         feature_names = preprocessor.feature_names_in_
     else:
@@ -21,21 +21,15 @@ def predict(new_data: pd.DataFrame, model, preprocessor):
     proba = model.predict_proba(X_transformed)[:, 1]
     return proba
 
-if __name__ == "__main__":
-    from src.data import generate_fraud_data
-    df = generate_fraud_data()
-    model, preprocessor = load_model()
-    probs = predict(df.head(), model, preprocessor)
-    print("Fraud probabilities:", probs
-
-def predict_with_shap(new_data, model, preprocessor, feature_names):
+def predict_with_shap(new_data, model, preprocessor, feature_names=None):
+    """Return probabilities and SHAP values."""
     probs = predict(new_data, model, preprocessor)
     shap_values = None
     if model.__class__.__name__ == 'RandomForestClassifier':
         import shap
         explainer = shap.TreeExplainer(model)
         X_transformed = preprocessor.transform(new_data)
-        shap_values = explainer.shap_values(X_transformed)[1]
+        shap_values = explainer.shap_values(X_transformed)[1]  # class 1 (fraud)
     return probs, shap_values
 
 def flag_transactions(probs, threshold=0.5, high_risk_threshold=0.8):
@@ -54,5 +48,10 @@ def flag_transactions(probs, threshold=0.5, high_risk_threshold=0.8):
         else:
             flags.append(0)
     return flags
-                
-    
+
+if __name__ == "__main__":
+    from src.data import generate_fraud_data
+    df = generate_fraud_data()
+    model, preprocessor = load_model()
+    probs = predict(df.head(), model, preprocessor)
+    print("Fraud probabilities:", probs)
