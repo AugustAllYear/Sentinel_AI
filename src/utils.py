@@ -1,5 +1,6 @@
 """ Utilites script to ensure reusability, standardizing MLflow tracking across scripts and helper functions for evaluations."""
 
+import os
 import logging
 import matplotlib.pyplot as plt
 import seaborn as sns

@@ -36,9 +36,9 @@ def find_optimal_threshold(y_true, y_proba, target_precision=0.8):
             return thresholds[i]
 
     # If target precision is never reached, return threshold that gives highest F1
-    f1_scores = 2 * (precisions[:-1] * reca;;s[:-1]) / (precisions[:-1] + recalls[:-1] + 1e-8)
+    f1_scores = 2 * (precisions[:-1] * recalls[:-1]) / (precisions[:-1] + recalls[:-1] + 1e-8)
     best_idx = np.argmax(f1_scores)
-    return 0.5
+    return thresholds[best_idx]
 
 if __name__ == "__main__":
     # Generate synthetic data for evaluation (or load real)
