@@ -1,6 +1,7 @@
 """Evaluate fraud detection model."""
 
 import mlflow
+import numpy as np
 import os
 import sys
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, average_precision_score, precision_recall_curve
@@ -29,9 +30,14 @@ def evaluate(model, preprocessor, X_test, y_test):
 
 def find_optimal_threshold(y_true, y_proba, target_precision=0.8):
     precisions, recalls, thresholds = precision_recall_curve(y_true, y_proba)
-    for i, p in enumerate(precisions):
+    # thresholds length = precisions length -1
+    for i, p in enumerate(precisions[:-1]):
         if p >= target_precision:
             return thresholds[i]
+
+    # If target precision is never reached, return threshold that gives highest F1
+    f1_scores = 2 * (precisions[:-1] * reca;;s[:-1]) / (precisions[:-1] + recalls[:-1] + 1e-8)
+    best_idx = np.argmax(f1_scores)
     return 0.5
 
 if __name__ == "__main__":

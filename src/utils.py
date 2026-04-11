@@ -12,6 +12,9 @@ def setup_logging(level=logging.INFO):
     logging.basicConfig(level=level, format='%(asctime)s - %(levelname)s - %(message)s')
     return logging.getLogger(__name__)
 
+def ensure_image_dir():
+    os.makedirs("images", exist_ok=True)
+
 def plot_roc_curve(y_true, y_proba, save_path=None):
     fpr, tpr, _ = roc_curve(y_true, y_proba)
     roc_auc = auc(fpr, tpr)
@@ -23,7 +26,8 @@ def plot_roc_curve(y_true, y_proba, save_path=None):
     plt.title('Receiver Operating Characteristic')
     plt.legend()
     if save_path:
-        plt.savefig(save_path)
+        full_path = os.path.join("images", os.path.basename(save_path))
+        plt.savefig(full_path)
         plt.close()
     else:
         plt.show()
@@ -36,7 +40,8 @@ def plot_confusion_matrix(y_true, y_pred, save_path=None):
     plt.ylabel('Actual')
     plt.title('Confusion Matrix')
     if save_path:
-        plt.savefig(save_path)
+        full_path = os.path.join("images", os.path.basename(save_path))
+        plt.savefig(full_path)
         plt.close()
     else:
         plt.show()

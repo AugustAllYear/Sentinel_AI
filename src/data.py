@@ -33,7 +33,7 @@ def generate_fraud_data(n_samples=5000, random_state=42):
     df = pd.DataFrame(data)
 
     def generate_fraud(row):
-        prob = 0.01
+        prob = 0.1
         if row['amount'] > 2000:
             prob += 0.05
         if row['location_risk_score'] > 0.8:

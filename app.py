@@ -1,9 +1,12 @@
 import streamlit as st
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import shap
 from src.data import generate_fraud_data
 from src.predict import load_model, predict, flag_transactions
+
+os.makedirs("images", exist_ok=True)
 
 st.set_page_config(page_title="Sentinel_AI Dashboard", layout="wide")
 st.title("Fraud Detection Dashboard")
@@ -62,10 +65,10 @@ if st.button("Predict Fraud Probability"):
         st.write("#### Force Plot for First Transaction")
         shap.force_plot(explainer.expected_value[1], shap_values[1][0], X_transformed[0],
                         feature_names=feature_names, matplotlib=True, show=False)
-        plt.savefig("force_plot.png", bbox_inches='tight')
-        st.image("force_plot.png")
+        plt.savefig(os.path.join("images", "force_plot.png"), bbox_inches='tight')
+        st.image("images/force_plot.png")
 
         st.write("#### Summary Plot")
         shap.summary_plot(shap_values[1], X_transformed, feature_names=feature_names, show=False)
-        plt.savefig("summary_plot.png", bbox_inches='tight')
-        st.image("summary_plot.png")
+        plt.savefig(os.path.join("images", "summary_plot.png"), bbox_inches='tight')
+        st.image("images/summary_plot.png")
