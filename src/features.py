@@ -10,15 +10,10 @@ def add_velocity_features(df: pd.DataFrame, time_col='timestamp', id_col='user_i
     """
     df = df.sort_values([id_col, time_col]).copy()
     df[time_col] = pd.to_datetime(df[time_col])
-    # Set datetime as index, group by user, then use rolling on time index
-    df = df.set_index(time_col)
     df['tx_rolling'] = (
-        df.groupby(id_col)[id_col]  # dummy column to count
-        .rolling(f'{window_hours}H', closed='both')
-        .count()
-        .reset_index(level=0, drop=True)
+        df.groupby(id_col)[time_col]
+        .transform(lambda x: x.rolling(window=f'{window_hours}h', closed='both').count())
     )
-    df = df.reset_index()
     return df
     
 

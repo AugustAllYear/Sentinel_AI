@@ -65,6 +65,11 @@ def train_model(data_path=None, use_autoencoder=False):
             mlflow.log_metric("avg_precision", ap)
             mlflow.sklearn.log_model(model, "model")
             mlflow.sklearn.log_model(preprocessor, "preprocessor")
+            # Save model and preprocessor to fixed path for later use (evaluate, app)
+            os.makedirs("models", exist_ok=True)
+            joblib.dump(model, "models/model.joblib")
+            joblib.dump(preprocessor, "models/preprocessor.joblib")
+            logger.info("Saved model to models/model.joblib")
             logger.info(f"RandomForest ROC-AUC: {auc:.4f}, AP: {ap:.4f}")
 
             # Save reference data for drift monitoring
