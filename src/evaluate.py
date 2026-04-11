@@ -1,6 +1,8 @@
 """Evaluate fraud detection model."""
 
 import mlflow
+import os
+import sys
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, average_precision_score, precision_recall_curve
 from src.data import generate_fraud_data, preprocess_data
 from src.features import engineer_features
@@ -33,9 +35,17 @@ def find_optimal_threshold(y_true, y_proba, target_precision=0.8):
     return 0.5
 
 if __name__ == "__main__":
+    # Generate synthetic data for evaluation (or load real)
     df = generate_fraud_data()
-    df = engineer_features(df)
+    # Use same feature config as training to avoid velocity issues
+    df = engineer_features(df, config={'velocity': False, 'z_score': True, 'rolling_fraud': False})
     X_train, X_test, y_train, y_test, preprocessor = preprocess_data(df)
+
+    # Check if model exists
+    if not os.path.exists("models/model.joblib"):
+        logger.error("Model not found. Please run src/train.py first.")
+        sys.exit(1)
+
     model, preprocessor = load_model("models/model.joblib", "models/preprocessor.joblib")
     evaluate(model, preprocessor, X_test, y_test)
 
