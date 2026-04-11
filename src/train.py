@@ -53,6 +53,11 @@ def train_model(data_path=None, use_autoencoder=False):
             mlflow.log_metric("roc_auc", auc)
             mlflow.log_metric("avg_precision", ap)
             mlflow.log_artifact("autoencoder_model.pth")
+            # Save autoencoder model and scaler to fixed path
+            os.makedirs("models", exist_ok=True)
+            joblib.dump(model, "models/autoencoder_model.joblib")
+            joblib.dump(scaler, "models/autoencoder_scaler.joblib")
+            logger.info("Saved autoencoder model and scaler to models/")
             logger.info(f"Autoencoder ROC-AUC: {auc:.4f}, AP: {ap:.4f}")
         else:
             logger.info("Training RandomForest classifier")
