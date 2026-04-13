@@ -53,6 +53,7 @@ def train_model(data_path=None, use_autoencoder=False):
             mlflow.log_metric("roc_auc", auc)
             mlflow.log_metric("avg_precision", ap)
             mlflow.log_artifact("autoencoder_model.pth")
+            
             # Save autoencoder model and scaler to fixed path
             os.makedirs("models", exist_ok=True)
             joblib.dump(model, "models/autoencoder_model.joblib")
@@ -70,6 +71,7 @@ def train_model(data_path=None, use_autoencoder=False):
             mlflow.log_metric("avg_precision", ap)
             mlflow.sklearn.log_model(model, "model")
             mlflow.sklearn.log_model(preprocessor, "preprocessor")
+            
             # Save model and preprocessor to fixed path for later use (evaluate, app)
             os.makedirs("models", exist_ok=True)
             joblib.dump(model, "models/model.joblib")
@@ -82,10 +84,11 @@ def train_model(data_path=None, use_autoencoder=False):
             df.to_csv("data/processed/reference.csv", index=False)
             logger.info("Saved reference dataset to data/processed/reference.csv")
 
+            # plot and save figures (will go into `images/` directory)
             plot_roc_curve(y_test, y_proba, save_path="roc_curve.png")
             plot_confusion_matrix(y_test, model.predict(X_test), save_path="confusion_matrix.png")
-            mlflow.log_artifact("roc_curve.png")
-            mlflow.log_artifact("confusion_matrix.png")
+            mlflow.log_artifact("images/roc_curve.png")
+            mlflow.log_artifact("images/confusion_matrix.png")
 
     return model, preprocessor
 
