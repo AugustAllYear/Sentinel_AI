@@ -11,6 +11,17 @@ os.makedirs("images", exist_ok=True)
 st.set_page_config(page_title="Sentinel_AI Dashboard", layout="wide")
 st.title("Fraud Detection Dashboard")
 
+with st.sidebar.expander("Feature Descriptions"):
+    st.markdown(""" 
+    | Feature | Description | Value |
+    |---------|-------------|-------|
+    | 'transaction_velocity_1h' | Number of transaction sin last hour | Catches rapid sucession fraud |
+    |'amount_z_score' | (amount - avg_amount) / std_amount per user | Detects unusual transaction size |
+    |'days_since_last_fraud | Days since last flagged fraud (if available) | Incorporates recency of risk |
+    | 'card_age_days' | Days since card issuance | New cards may be riskier' |
+    | 'merchand_risk_score' | External mechant risk tier | Uses external data |
+    |'rolling_fraud_rate_7d' | Fractions of fraud in last 7 days per users | Temporal pattern |
+    """)
 @st.cache_resource
 def get_model():
     return load_model("models/model.joblib", "models/preprocessor.joblib")
