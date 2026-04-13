@@ -7,8 +7,10 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from datetime import datetime, timedelta
 
-def generate_fraud_data(n_samples=5000, random_state=42):
+
+def generate_fraud_data(n_samples=config['data']['synthetic_smaples'], random_state=config['data']['random_state']):
     np.random.seed(random_state)
+    
     
     # Generate timestamps within the last 30 days
     end_date = datetime.now()

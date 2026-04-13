@@ -1,0 +1,48 @@
+# Sentinel_AI Configuration
+
+data: 
+  synthetic_samples: 5000
+  random_state: 42
+
+features:
+  velocity: 
+    enabled: false
+    window_hours: 1
+  z_score: 
+    enabled: true
+  rolling_fraud:
+    enabled: false
+    window_transactions: 7
+
+model:
+  type: "random_forest" # or "autoencoder"
+  random_forest:
+    n_estimators: 100
+    max_depth: null
+    class_weight: "balanced"
+  autoencoder:
+    encoding_dim: 16
+    epochs: 20
+    batch_size: 32
+
+training: 
+  test_size: 0.2
+  random_state: 42
+
+monitoring:
+  psi_threshold: 0.1
+  features_for_drift:
+    - amount
+    - time_since_last_tx
+    - location_risk_score
+    - num_transactions_30d
+
+paths:
+  models: "models/"
+  data_raw: "data/raw/"
+  data_processed: "data/processed/"
+  images: "images/"
+
+mlflow:
+  tracking_uri: null #Local deplyment: leave null or set to "file:./mlruns". For remote server set it to your server's URI, e.g., "http://your-mlflow-server:5000" For database backend use a database URI eg "postgresql://user:pass@localhost/mlflow"
+    

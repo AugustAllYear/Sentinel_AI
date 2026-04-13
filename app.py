@@ -22,9 +22,15 @@ with st.sidebar.expander("Feature Descriptions"):
     | 'merchand_risk_score' | External mechant risk tier | Uses external data |
     |'rolling_fraud_rate_7d' | Fractions of fraud in last 7 days per users | Temporal pattern |
     """)
+
 @st.cache_resource
 def get_model():
-    return load_model("models/model.joblib", "models/preprocessor.joblib")
+    model_path = "models/model.joblib"
+    preprocessor_path = "models/preprocessor.joblib"
+    if not os.path.exists(model_path) or not os.path.exists(preprocessor_path):
+        st.error("Model not found. Please train the model first by running:\n\n```bash\npython -m src.train\n```")
+        st.stop()
+    return load_model(model_path, preprocessor_path)
 
 model, preprocessor = get_model()
 

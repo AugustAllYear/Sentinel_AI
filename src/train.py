@@ -12,6 +12,10 @@ from src.data import generate_fraud_data, preprocess_data
 from src.features import engineer_features
 from src.utils import setup_logging, plot_roc_curve, plot_confusion_matrix
 from src.deep_learning import train_autoencoder, predict_anomaly
+from src.utils import load_config
+
+#  Load config
+config = load_config("config/config.yaml")
 
 logger = setup_logging()
 
@@ -26,16 +30,22 @@ def load_real_data(file_path: str):
     return df
 
 def train_model(data_path=None, use_autoencoder=False):
+    config = load_config("config/config.yaml")
+    
     if data_path is not None:
         logger.info(f"Loading real data from {data_path}")
         df = load_real_data(data_path)
     else:
         logger.info("No data path provided. Generating synthetic data.")
-        df = generate_fraud_data()
+        df = generate_fraud_data(
+            n_samples=config['data']['synthetic_samples'],
+            random_state=config['data']['random_state']
+        )
 
-    df = engineer_features(df, config={'velocity': False, 'z_score': True, 'rolling_fraud': False})
+    feat_config = config['features']
+    df = engineer_features(df, config=feat_config)
 
-    X_train, X_test, y_train, y_test, preprocessor = preprocess_data(df)
+    X_train, X_test, y_train, y_test, preprocessor = preprocess_data(df, test_size=config['training']['test_size'])
 
     with mlflow.start_run():
         if use_autoencoder:

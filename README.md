@@ -46,14 +46,25 @@ End‑to‑end machine learning pipeline for real‑time fraud detection, with C
 
 ## Usage
 
-### Train model with syntheric data
+### Configuration
+
+All key parameters for data generation, feature engineering, model training, and monitoring are centralized in `config/config.yaml`. You can modify this file to adjust the pipeline's behavior without changing the code.
+
+- **Data**: `synthetic_samples` and `random_state` control synthetic data generation.
+- **Features**: Enable/disable feature groups like `velocity`, `z_score`, and `rolling_fraud`.
+- **Model**: Choose between `random_forest` and `autoencoder`, and tune their hyperparameters.
+- **Training**: Adjust the `test_size` for data splitting.
+- **Monitoring**: Set the drift detection threshold (`psi_threshold`) and the features to monitor.
+- **Paths**: Configure where models and data are saved.
+
+### Train model with synthetic data
 ```bash
     python src/train.py --synthetic
 ```
 
 ### Train with real data
 ```bash
-    paython src/train.py --data_path data/raw/tranaction.csv. #adjust as eneded
+    python src/train.py --data_path data/raw/transactions.csv. #adjust as eneded
 ```
 
 ### Evaluate
@@ -61,12 +72,12 @@ End‑to‑end machine learning pipeline for real‑time fraud detection, with C
     python src/evaluate.py
 ```
 
-### Pedict on new data
+### Predict on new data
 ```
     from src.predict import load_model, predict
     import pandas as pd
     model, preprocessor = load_model()
-    new_data = pd.read_csv("now_transactions.csv")
+    new_data = pd.read_csv("new_transactions.csv")
     probs = predict(new_data, model, preprocessor)
 ```
 ### Run dashboard
@@ -75,12 +86,12 @@ End‑to‑end machine learning pipeline for real‑time fraud detection, with C
 ```
 ### Testing
 ```
-    pytest test/
+    pytest tests/
 ```
 ### CI/CD
 
 - GitHub Actions runs test and training on every push
-- Weekly retrianing via cron job (see `github/workflows/retrain.yml`).
+- Weekly retraining via cron job (see `github/workflows/retrain.yml`).
 
 ## Logging & Monitoring
 
@@ -100,7 +111,7 @@ sentinel_ai/
 │   └── workflows/
 │       └── ci.yml                # CI/CD workflow
 │       └── retrain.yml           # Retraining if drift detected
-│       └── schduled_retrain.yml   # Set to every Sunday at midnight
+│       └── scheduled_retrain.yml   # Set to every Sunday at midnight
 ├── -------config/
 │   └── config.yaml               # (optional) configuration
 ├── data/
@@ -182,11 +193,6 @@ In `train.py` `RandomForestClassifier(class_weight='balanced')
     streamlit run app.py
 ```
 4. Use the sidebar to upload a CSV file or generate synthetic data, then click "Predict Fraud Probability".
- 
-## Results
-- The model identified recency (`last_purchase_days`) as the strongest predictor of opens.
-- Targeting the top 30% of customers by predicted probability captures ~68% of all potential opens.
-- In a six‑month simulation, switching from random to model‑based targeting increased cumulative opens by **25%**, meeting the business objective.
 
 ## Future Work
 
