@@ -99,7 +99,9 @@ sentinel_ai/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                # CI/CD workflow
-├── config/
+│       └── retrain.yml           # Retraining if drift detected
+│       └── schduled_retrain.yml   # Set to every Sunday at midnight
+├── -------config/
 │   └── config.yaml               # (optional) configuration
 ├── data/
 │   ├── raw/                      # raw input data (ignored by git)
